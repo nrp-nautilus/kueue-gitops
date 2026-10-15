@@ -2,11 +2,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Upstream release manifest, vendored unmodified from
-# https://github.com/kubernetes-sigs/kueue/releases/download/v0.17.0/manifests.yaml
+# https://github.com/kubernetes-sigs/kueue/releases/download/v0.20.2/manifests.yaml
 # To upgrade: add upstream/<new>/manifests.yaml, point this at it, and
 # re-check controller_manager_config.yaml against the new release's defaults.
 resources:
-  - upstream/v0.17.0/manifests.yaml
+  - upstream/v0.20.2/manifests.yaml
 
 # Replace the upstream ConfigMap with the NRP configuration. The name stays
 # fixed (no hash suffix) because Kueue reads it by name; a config change needs

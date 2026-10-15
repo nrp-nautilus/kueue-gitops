@@ -41,4 +41,7 @@ kubectl rollout restart -n kueue-system deploy/kueue-controller-manager
 2. Point `kustomization.yaml` at it.
 3. Diff the new release's default config against `controller_manager_config.yaml`
    and read the release notes for every minor version in between.
-4. Run the diff above, then sync.
+4. Run the diff above, then sync. If the release drops an object (v0.20 dropped
+   the `v1beta1.visibility.kueue.x-k8s.io` APIService), prune it in that sync:
+   a stale APIService with no backend breaks API discovery and blocks
+   namespace deletion.

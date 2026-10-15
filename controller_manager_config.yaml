@@ -26,7 +26,9 @@ managedJobsNamespaceSelector:
   matchLabels:
     managed-by-kueue: "true"
 featureGates:
-  ManagedJobsNamespaceSelectorAlwaysRespected: true
+  # v0.19 turned WaitForPodsReady on by default (30m timeout, then evict and
+  # requeue). Keep it off, as it was through v0.18, until NRP opts in.
+  DisableWaitForPodsReady: true
 integrations:
   frameworks:
     - "batch/job"
