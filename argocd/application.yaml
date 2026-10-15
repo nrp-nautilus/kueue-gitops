@@ -1,0 +1,47 @@
+# Applied by hand: kubectl apply -f argocd/application.yaml
+# Not part of the kustomization, so Argo CD does not manage its own Application.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kueue
+  namespace: argo
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/nrp-nautilus/kueue-gitops.git
+    targetRevision: main
+    path: .
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kueue-system
+  syncPolicy:
+    # Manual sync while adoption is new. Once a few syncs have been clean,
+    # add `automated: {prune: false, selfHeal: true}`.
+    syncOptions:
+      # The CRDs are too large for client-side apply's last-applied annotation.
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+      - PruneLast=true
+  # Kueue's internal cert manager writes these at runtime.
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+    - group: apiregistration.k8s.io
+      kind: APIService
+      jsonPointers:
+        - /spec/caBundle
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jqPathExpressions:
+        - .spec.conversion.webhook.clientConfig.caBundle
+    - kind: Secret
+      name: kueue-webhook-server-cert
+      namespace: kueue-system
+      jsonPointers:
+        - /data

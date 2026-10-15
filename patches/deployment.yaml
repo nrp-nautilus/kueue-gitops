@@ -1,0 +1,21 @@
+# Two replicas: the pod webhook is failurePolicy Fail, so a single replica
+# outage blocks pod creation cluster-wide. Limits match the live hand edit
+# of 2026-04-15 (upstream default is 2 CPU / 512Mi).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kueue-controller-manager
+  namespace: kueue-system
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: manager
+          resources:
+            limits:
+              cpu: "6"
+              memory: 6Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi

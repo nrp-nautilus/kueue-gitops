@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Upstream release manifest, vendored unmodified from
+# https://github.com/kubernetes-sigs/kueue/releases/download/v0.17.0/manifests.yaml
+# To upgrade: add upstream/<new>/manifests.yaml, point this at it, and
+# re-check controller_manager_config.yaml against the new release's defaults.
+resources:
+  - upstream/v0.17.0/manifests.yaml
+
+# Replace the upstream ConfigMap with the NRP configuration. The name stays
+# fixed (no hash suffix) because Kueue reads it by name; a config change needs
+# `kubectl rollout restart -n kueue-system deploy/kueue-controller-manager`.
+configMapGenerator:
+  - name: kueue-manager-config
+    namespace: kueue-system
+    behavior: replace
+    files:
+      - controller_manager_config.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - path: patches/namespace.yaml
+  - path: patches/deployment.yaml
+  # Never let Argo CD delete the CRDs: removing them deletes every
+  # ClusterQueue, LocalQueue and Workload in the cluster.
+  - target:
+      kind: CustomResourceDefinition
+    patch: |-
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1sync-options
+        value: Delete=false

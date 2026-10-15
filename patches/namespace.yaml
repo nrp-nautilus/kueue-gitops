@@ -1,0 +1,14 @@
+# Keep the NRP labels/annotations the namespace already carries, and never let
+# Argo CD delete the namespace (that would take the webhook down with it).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kueue-system
+  labels:
+    nautilus.io/system-namespace: "true"
+  annotations:
+    argocd.argoproj.io/sync-options: Delete=false
+    nrp.ai/description: Kubernetes batch queuing (Kueue) controller
+    nrp.ai/institution: NRP platform
+    nrp.ai/publications: https://kueue.sigs.k8s.io/
+    nrp.ai/software: https://github.com/kubernetes-sigs/kueue
