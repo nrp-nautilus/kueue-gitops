@@ -10,6 +10,14 @@ webhook:
 leaderElection:
   leaderElect: true
   resourceName: c1f6bfd2.kueue.x-k8s.io
+  # Upstream defaults are 15s/10s/2s, so a 10s apiserver or etcd stall costs
+  # the lease and restarts the controller (it did at 19:49 UTC on 2026-10-16,
+  # when kube-scheduler and kube-controller-manager lost theirs too). Kueue
+  # releases the lease on graceful shutdown, so rollouts still hand over at
+  # once; only a crashed leader leaves admission paused for up to 60s.
+  leaseDuration: 60s
+  renewDeadline: 40s
+  retryPeriod: 5s
 controller:
   groupKindConcurrency:
     Job.batch: 5

@@ -1,0 +1,29 @@
+# Route Kueue's leader-election lease traffic to the leader-election priority
+# level, the way the built-in system-leader-election FlowSchema does for
+# kube-system. Without this, the lease falls through to the catch-all
+# service-accounts FlowSchema (precedence 9000, workload-low), which every
+# operator on the cluster shares. On 2026-10-16 workload-low queued requests for
+# 4-14s and returned 429s at 15:50, 18:58 and 19:49 UTC, and Kueue lost its lease
+# and restarted each time, while leader-election waited ~5ms throughout.
+apiVersion: flowcontrol.apiserver.k8s.io/v1
+kind: FlowSchema
+metadata:
+  name: kueue-leader-election
+spec:
+  # Ahead of service-accounts (9000), behind system-leader-election (100).
+  matchingPrecedence: 200
+  priorityLevelConfiguration:
+    name: leader-election
+  distinguisherMethod:
+    type: ByUser
+  rules:
+    - subjects:
+        - kind: ServiceAccount
+          serviceAccount:
+            name: kueue-controller-manager
+            namespace: kueue-system
+      resourceRules:
+        - apiGroups: ["coordination.k8s.io"]
+          resources: ["leases"]
+          verbs: ["get", "create", "update"]
+          namespaces: ["kueue-system"]

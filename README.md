@@ -10,6 +10,7 @@ The Argo CD Application is `argo/kueue`; it deploys into `kueue-system`.
 | `upstream/<version>/manifests.yaml` | Upstream release manifest, vendored unmodified |
 | `controller_manager_config.yaml` | NRP Kueue `Configuration` (replaces the upstream ConfigMap) |
 | `patches/` | NRP changes to upstream objects (replicas, resources, namespace metadata) |
+| `flowschema.yaml` | Sends Kueue's leader-election lease traffic to the `leader-election` API priority level |
 | `kustomization.yaml` | Ties the above together; this is what Argo CD renders |
 | `argocd/application.yaml` | The Argo CD Application, applied by hand |
 
