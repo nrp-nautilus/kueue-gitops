@@ -27,6 +27,15 @@ The namespace and CRDs carry `argocd.argoproj.io/sync-options: Delete=false`:
 deleting the Application, or pruning, will never delete them. Deleting the CRDs
 would delete every ClusterQueue, LocalQueue and Workload.
 
+Never set `spec.conversion.strategy: None` on the Kueue CRDs. At startup Kueue
+injects its CA into the conversion webhook of `clusterqueues`, `cohorts`,
+`localqueues`, `multikueueclusters` and `workloads`, and it will not start if
+`conversion.webhook.clientConfig` is missing. Running pods keep working, so the
+break only shows on the next restart. On 2026-11-24 a manual patch did this;
+when kured later rebooted the node under the last healthy replica, pod creation
+was blocked cluster-wide for 1h40m. Fix conversion problems here instead (see the
+v1beta1 patch in `kustomization.yaml`).
+
 ## Changing the configuration
 
 Edit `controller_manager_config.yaml`, sync, then restart the controller
@@ -46,3 +55,6 @@ kubectl rollout restart -n kueue-system deploy/kueue-controller-manager
    the `v1beta1.visibility.kueue.x-k8s.io` APIService), prune it in that sync:
    a stale APIService with no backend breaks API discovery and blocks
    namespace deletion.
+5. On the upgrade to v0.21 or later, delete the v1beta1-removal patch from
+   `kustomization.yaml`; upstream no longer ships v1beta1, so its `test` op
+   fails the build until you do.
